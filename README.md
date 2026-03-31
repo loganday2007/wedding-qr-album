@@ -105,3 +105,4 @@ Requirements:
 - Large videos depend on guest network quality.
 - `MAX_UPLOAD_MB` controls per-file size cap.
 - For very large events, consider lifecycle rules after backup.
+# wedding-qr-album
