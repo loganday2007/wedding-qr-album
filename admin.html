@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Admin Controls</title>
+    <style>
+      :root {
+        --bg: #eee6dc;
+        --card: #fffdf9;
+        --ink: #1f1a17;
+        --muted: #665b51;
+        --line: #e6d9c8;
+        --button-bg: #1f140f;
+        --button-text: #fff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 8% 8%, #e8d6c2 0%, transparent 30%),
+          radial-gradient(circle at 92% 5%, #eadccd 0%, transparent 30%),
+          var(--bg);
+        color: var(--ink);
+        padding: 20px;
+      }
+      .wrap { max-width: 1120px; margin: 0 auto; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 14px;
+        box-shadow: 0 16px 34px rgba(42, 25, 12, 0.08);
+      }
+      h1,
+      h2 {
+        margin: 0 0 10px;
+        font-family: "Didot", "Bodoni MT", serif;
+      }
+      p { margin: 0 0 10px; color: var(--muted); }
+      .toolbar { display: flex; gap: 10px; flex-wrap: wrap; }
+      button,
+      .link-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 16px;
+        background: var(--button-bg);
+        color: var(--button-text);
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 10px;
+      }
+      .field { display: grid; gap: 6px; }
+      label { font-size: 0.88rem; color: var(--muted); }
+      input[type="text"],
+      input[type="color"] {
+        border: 1px solid #d9cab9;
+        border-radius: 10px;
+        padding: 9px 10px;
+        font: inherit;
+        width: 100%;
+      }
+      input[type="color"] { min-height: 42px; }
+      .status { margin-top: 10px; font-weight: 700; }
+      .small { font-size: 0.86rem; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1>Admin Controls</h1>
+        <p>Change words, button labels, and colors for every page.</p>
+        <div class="toolbar">
+          <button id="saveBtn" type="button">Save Changes</button>
+          <button id="resetBtn" type="button">Reset Defaults</button>
+          <a class="link-btn" href="/index.html" target="_blank" rel="noreferrer">Guest Page</a>
+          <a class="link-btn" href="/host.html" target="_blank" rel="noreferrer">Host Page</a>
+          <a class="link-btn" href="/poster.html" target="_blank" rel="noreferrer">Poster</a>
+        </div>
+        <div class="status" id="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>Colors</h2>
+        <div class="grid" id="colorGrid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Text + Buttons</h2>
+        <p class="small">These values update all site pages in this browser.</p>
+        <div class="grid" id="textGrid"></div>
+      </section>
+    </main>
+
+    <script src="./ui-customizer.js"></script>
+    <script>
+      const colorLabels = {
+        bg: "Background",
+        card: "Card",
+        ink: "Main text",
+        muted: "Muted text",
+        brand: "Brand",
+        brandAlt: "Brand alt",
+        buttonBg: "Button background",
+        buttonText: "Button text",
+        line: "Borders/lines",
+      };
+
+      const textLabels = {
+        index_title: "Upload: Title",
+        index_subtitle: "Upload: Subtitle",
+        index_notice: "Upload: Notice",
+        index_drop_prompt: "Upload: Drop prompt",
+        index_choose_files: "Upload: Choose button",
+        index_camera_button: "Upload: Camera button",
+        index_no_files: "Upload: Empty note",
+        index_upload_button: "Upload: Submit button",
+        index_footer: "Upload: Footer",
+
+        qr_title: "QR: Title",
+        qr_note: "QR: Note",
+        qr_generate_button: "QR: Generate button",
+        qr_download_button: "QR: Download button",
+        qr_tip: "QR: Tip",
+        qr_url_placeholder: "QR: URL placeholder",
+
+        poster_title: "Poster: Title",
+        poster_subtitle: "Poster: Subtitle",
+        poster_tip: "Poster: Tip",
+        poster_refresh_button: "Poster: Refresh button",
+        poster_print_button: "Poster: Print button",
+
+        host_title: "Host: Title",
+        host_subtitle: "Host: Subtitle",
+        host_guest_label: "Host: Guest URL label",
+        host_guest_link: "Host: Guest link",
+        host_code_placeholder: "Host: Code placeholder",
+        host_continue_button: "Host: Continue button",
+        host_load_button: "Host: Load button",
+        host_refresh_button: "Host: Refresh button",
+        host_export_button: "Host: Export ZIP button",
+        host_empty: "Host: Empty state",
+      };
+
+      const settings = window.WeddingUI.loadSettings();
+      const colorGrid = document.getElementById("colorGrid");
+      const textGrid = document.getElementById("textGrid");
+      const status = document.getElementById("status");
+      const saveBtn = document.getElementById("saveBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const colorInputs = {};
+      const textInputs = {};
+
+      Object.keys(settings.colors).forEach((key) => {
+        const wrap = document.createElement("div");
+        wrap.className = "field";
+
+        const label = document.createElement("label");
+        label.setAttribute("for", `color_${key}`);
+        label.textContent = colorLabels[key] || key;
+
+        const input = document.createElement("input");
+        input.type = "color";
+        input.id = `color_${key}`;
+        input.value = settings.colors[key];
+
+        colorInputs[key] = input;
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        colorGrid.appendChild(wrap);
+      });
+
+      Object.keys(settings.text).forEach((key) => {
+        const wrap = document.createElement("div");
+        wrap.className = "field";
+
+        const label = document.createElement("label");
+        label.setAttribute("for", `text_${key}`);
+        label.textContent = textLabels[key] || key;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = `text_${key}`;
+        input.value = settings.text[key];
+
+        textInputs[key] = input;
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        textGrid.appendChild(wrap);
+      });
+
+      const buildPayload = () => {
+        const next = {
+          colors: {},
+          text: {},
+        };
+
+        Object.keys(colorInputs).forEach((key) => {
+          next.colors[key] = colorInputs[key].value;
+        });
+
+        Object.keys(textInputs).forEach((key) => {
+          next.text[key] = textInputs[key].value;
+        });
+
+        return next;
+      };
+
+      const loadIntoForm = (payload) => {
+        Object.keys(colorInputs).forEach((key) => {
+          colorInputs[key].value = payload.colors[key];
+        });
+
+        Object.keys(textInputs).forEach((key) => {
+          textInputs[key].value = payload.text[key];
+        });
+      };
+
+      saveBtn.addEventListener("click", () => {
+        window.WeddingUI.saveSettings(buildPayload());
+        window.WeddingUI.apply();
+        status.textContent = "Saved. Refresh other open pages to view updates.";
+        status.style.color = "#0c7a43";
+      });
+
+      resetBtn.addEventListener("click", () => {
+        const defaults = window.WeddingUI.clearSettings();
+        loadIntoForm(defaults);
+        window.WeddingUI.apply();
+        status.textContent = "Reset to defaults.";
+        status.style.color = "#7a540c";
+      });
+    </script>
+  </body>
+</html>

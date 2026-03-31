@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Wedding Album Upload</title>
+    <style>
+      :root {
+        --bg: #f2ece4;
+        --card: #fffdf9;
+        --ink: #1f1a17;
+        --muted: #6a5d52;
+        --brand: #a35f2b;
+        --brand-2: #d99b66;
+        --ok: #17663a;
+        --line: #eadfce;
+        --button-bg: #1f140f;
+        --button-text: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 12%, #efdbc3 0%, transparent 33%),
+          radial-gradient(circle at 90% 2%, #efe2d3 0%, transparent 30%),
+          linear-gradient(180deg, #f7f2ea 0%, var(--bg) 100%);
+        min-height: 100vh;
+        padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+          max(16px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+      }
+
+      .shell {
+        width: min(940px, 100%);
+        margin: 0 auto;
+        animation: rise 420ms ease;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .admin-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #d9c7b3;
+        border-radius: 999px;
+        padding: 8px 13px;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: #5f3e27;
+        background: #fff8ef;
+        text-decoration: none;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: clamp(18px, 3vw, 34px);
+        box-shadow: 0 18px 44px rgba(51, 28, 13, 0.1);
+      }
+
+      .badge {
+        display: inline-block;
+        font-size: 0.77rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #7a4e31;
+        background: #f7e6d4;
+        border: 1px solid #efd2b8;
+        border-radius: 999px;
+        padding: 6px 10px;
+      }
+
+      h1 {
+        margin: 10px 0 8px;
+        font-family: "Didot", "Bodoni MT", "Times New Roman", serif;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-size: clamp(1rem, 2vw, 1.15rem);
+      }
+
+      .notice {
+        margin: 18px 0;
+        border-radius: 14px;
+        border: 1px solid #f0dbc6;
+        background: linear-gradient(180deg, #fff8f0, #fff4e8);
+        padding: 11px 12px;
+        color: #5e4c3f;
+        font-size: 0.95rem;
+      }
+
+      .drop {
+        border: 2px dashed var(--brand-2);
+        border-radius: 16px;
+        background: #fff;
+        padding: clamp(20px, 2.5vw, 30px);
+        text-align: center;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .drop.dragging {
+        border-color: var(--brand);
+        background: #fff8f0;
+      }
+
+      .drop p {
+        margin: 0;
+      }
+
+      .file-label,
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 210px;
+        min-height: 48px;
+        border: 0;
+        border-radius: 999px;
+        padding: 13px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        margin-top: 12px;
+      }
+
+      .file-label {
+        background: linear-gradient(180deg, var(--brand), #864923);
+        color: #fff;
+      }
+
+      .btn {
+        width: 100%;
+        margin-top: 16px;
+        background: var(--button-bg);
+        color: var(--button-text);
+        font-size: 1rem;
+      }
+
+      .upload-cta {
+        margin-top: 2px;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .quick-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .small {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .progress-wrap {
+        margin-top: 14px;
+        display: none;
+      }
+
+      progress {
+        width: 100%;
+        height: 12px;
+      }
+
+      #status {
+        margin-top: 12px;
+        font-weight: 700;
+      }
+
+      #status.ok {
+        color: var(--ok);
+      }
+
+      #status.err {
+        color: #9d2222;
+      }
+
+      .footer {
+        margin: 18px 0 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: max(12px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+            max(14px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        }
+
+        .topbar {
+          margin-bottom: 8px;
+        }
+
+        .admin-link {
+          min-height: 42px;
+          padding: 8px 14px;
+        }
+
+        .card {
+          border-radius: 18px;
+          padding: 16px;
+        }
+
+        .quick-actions {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .file-label {
+          width: 100%;
+          margin-top: 8px;
+        }
+
+        .drop {
+          padding: 16px;
+        }
+
+        .upload-cta {
+          position: sticky;
+          bottom: 0;
+          margin-top: 14px;
+          padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+          background: linear-gradient(180deg, rgba(255, 253, 249, 0), rgba(255, 253, 249, 0.97) 28%, rgba(255, 253, 249, 1) 100%);
+        }
+
+        .upload-cta .btn {
+          margin-top: 0;
+          font-size: 1.02rem;
+        }
+
+        .footer {
+          padding-bottom: max(72px, env(safe-area-inset-bottom));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="topbar">
+        <a class="admin-link" href="/qr.html">QR Code</a>
+        <a class="admin-link" href="/host.html">Admin</a>
+      </div>
+      <section class="card">
+        <span class="badge">Guest Upload</span>
+        <h1 id="title" data-text-key="index_title">Wedding Memory Album</h1>
+        <p class="subtitle" id="subtitle" data-text-key="index_subtitle">Share your best photos and videos from today.</p>
+
+        <div class="notice" id="noticeText" data-text-key="index_notice">
+          Original quality is preserved. Large videos can take extra time to upload.
+        </div>
+
+        <section id="dropZone" class="drop" aria-label="Upload photos and videos">
+          <p id="dropPrompt" data-text-key="index_drop_prompt">Drop files here or tap the button below.</p>
+          <div class="quick-actions">
+            <label class="file-label" for="filesInput" data-text-key="index_choose_files">Choose Photos/Videos</label>
+            <label class="file-label" for="cameraInput" data-text-key="index_camera_button">Take Photo/Video</label>
+          </div>
+          <input id="filesInput" type="file" multiple accept="image/*,video/*" />
+          <input id="cameraInput" type="file" accept="image/*,video/*" capture="environment" />
+          <div class="small" id="countLabel" data-text-key="index_no_files">No files selected yet.</div>
+        </section>
+
+        <div class="upload-cta">
+          <button id="uploadBtn" class="btn" type="button" disabled data-text-key="index_upload_button">Upload to Album</button>
+        </div>
+
+        <div class="progress-wrap" id="progressWrap">
+          <progress id="progressBar" max="100" value="0"></progress>
+          <div class="small" id="progressText">Preparing upload...</div>
+        </div>
+
+        <div id="status" aria-live="polite"></div>
+
+        <p class="footer" data-text-key="index_footer">
+          Having trouble? Ask the wedding host for the direct upload link.
+        </p>
+      </section>
+    </main>
+
+    <script src="./wedding-config.js"></script>
+    <script>
+      const REQUIRED = ["eventSlug"];
+      const cfg = window.WEDDING_CONFIG || {};
+      const missing = REQUIRED.filter((k) => !cfg[k]);
+      const apiBase = (cfg.apiBaseUrl || "").replace(/\/$/, "");
+
+      const titleEl = document.getElementById("title");
+      const subtitleEl = document.getElementById("subtitle");
+      const dropZone = document.getElementById("dropZone");
+      const filesInput = document.getElementById("filesInput");
+      const cameraInput = document.getElementById("cameraInput");
+      const countLabel = document.getElementById("countLabel");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const statusEl = document.getElementById("status");
+      const progressWrap = document.getElementById("progressWrap");
+      const progressBar = document.getElementById("progressBar");
+      const progressText = document.getElementById("progressText");
+
+      if (cfg.coupleNames) {
+        titleEl.textContent = `${cfg.coupleNames} Wedding Album`;
+      }
+      if (cfg.welcomeMessage) {
+        subtitleEl.textContent = cfg.welcomeMessage;
+      }
+
+      let selectedFiles = [];
+
+      const setStatus = (message, kind = "") => {
+        statusEl.className = kind;
+        statusEl.textContent = message;
+      };
+
+      const setFileList = (files) => {
+        selectedFiles = files;
+        if (!files.length) {
+          countLabel.textContent = window.WeddingUI?.loadSettings().text.index_no_files || "No files selected yet.";
+          uploadBtn.disabled = true;
+          return;
+        }
+        const images = files.filter((f) => f.type.startsWith("image/")).length;
+        const videos = files.filter((f) => f.type.startsWith("video/")).length;
+        countLabel.textContent = `${files.length} selected (${images} photo${images === 1 ? "" : "s"}, ${videos} video${videos === 1 ? "" : "s"})`;
+        uploadBtn.disabled = missing.length > 0;
+      };
+
+      filesInput.addEventListener("change", (e) => {
+        setFileList(Array.from(e.target.files || []));
+      });
+
+      cameraInput.addEventListener("change", (e) => {
+        const captured = Array.from(e.target.files || []);
+        if (!captured.length) return;
+        setFileList(selectedFiles.concat(captured));
+        cameraInput.value = "";
+      });
+
+      ["dragenter", "dragover"].forEach((evt) => {
+        dropZone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add("dragging");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((evt) => {
+        dropZone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove("dragging");
+        });
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        setFileList(Array.from(e.dataTransfer.files || []));
+      });
+
+      const uploadOne = async (file) => {
+        let presignRes;
+        try {
+          presignRes = await fetch(`${apiBase}/api/presign-upload`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              eventSlug: cfg.eventSlug,
+              filename: file.name,
+              contentType: file.type || "application/octet-stream",
+              size: file.size,
+            }),
+          });
+        } catch (_) {
+          throw new Error("Could not reach API. Open this page from http://localhost:8787/index.html.");
+        }
+
+        if (!presignRes.ok) {
+          const data = await presignRes.json().catch(() => ({}));
+          throw new Error(data.error || "Could not start upload.");
+        }
+
+        const { uploadUrl, objectKey } = await presignRes.json();
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+          },
+          body: file,
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error(`Upload failed for ${file.name}.`);
+        }
+
+        return { objectKey };
+      };
+
+      uploadBtn.addEventListener("click", async () => {
+        if (missing.length) {
+          setStatus(`Configuration missing: ${missing.join(", ")}`, "err");
+          return;
+        }
+
+        if (!selectedFiles.length) {
+          setStatus("Select at least one file first.", "err");
+          return;
+        }
+
+        uploadBtn.disabled = true;
+        filesInput.disabled = true;
+        progressWrap.style.display = "block";
+        progressBar.value = 0;
+        setStatus("Uploading... Please keep this page open.");
+
+        let completed = 0;
+        let failed = 0;
+        const errors = [];
+
+        for (const file of selectedFiles) {
+          progressText.textContent = `Uploading ${file.name}`;
+          try {
+            await uploadOne(file);
+            completed += 1;
+          } catch (err) {
+            console.error(err);
+            failed += 1;
+            if (errors.length < 3) {
+              errors.push(err?.message || "Upload failed.");
+            }
+          }
+          progressBar.value = Math.round(((completed + failed) / selectedFiles.length) * 100);
+        }
+
+        filesInput.value = "";
+        selectedFiles = [];
+        countLabel.textContent = window.WeddingUI?.loadSettings().text.index_no_files || "No files selected yet.";
+        filesInput.disabled = false;
+        uploadBtn.disabled = false;
+        progressText.textContent = "Complete";
+
+        if (failed === 0) {
+          setStatus(`Success. Uploaded ${completed} file${completed === 1 ? "" : "s"}.`, "ok");
+        } else {
+          const detail = errors.length ? ` ${errors.join(" | ")}` : "";
+          setStatus(`Uploaded ${completed} file(s), ${failed} failed.${detail}`, "err");
+        }
+      });
+
+      if (missing.length) {
+        setStatus(`Setup required: fill wedding-config.js (${missing.join(", ")}).`, "err");
+      }
+    </script>
+    <script src="./ui-customizer.js"></script>
+  </body>
+</html>
