@@ -7,5 +7,5 @@ window.WEDDING_CONFIG = {
   // Optional
   coupleNames: "Alex & Jordan",
   welcomeMessage: "Scan, snap, and upload your moments from tonight.",
-  guestUploadUrl: "http://localhost:8787/index.html",
+  guestUploadUrl: "https://wedding-qr-album-production.up.railway.app/index.html",
 };
