@@ -231,6 +231,6 @@ app.get("/api/export-zip", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Wedding album server running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Wedding album server running on 0.0.0.0:${PORT}`);
 });
